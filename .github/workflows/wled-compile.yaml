@@ -1,4 +1,4 @@
-name: WLED compile
+name: WLED compiler
 
 on:
     workflow_dispatch:
@@ -48,7 +48,7 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE
         git config user.name "GitHub Actions Bot"
-        git config user.email "<>"
+        git config user.email "matthewiseberg@gmail.com"
         git add $GITHUB_WORKSPACE/custom_build.bin
         git add $GITHUB_WORKSPACE/last_update_date.txt
         git commit -m "Commit Custom Build"
