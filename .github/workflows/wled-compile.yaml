@@ -28,7 +28,7 @@ jobs:
         cd `cat /tmp/WLEDtemp/wledfoldername`
         echo '[env:custom_build]' >>platformio.ini
         echo 'extends = env:esp32dev_V4_dio80' >>platformio.ini
-        echo 'build_flags = ${env:esp32dev_V4_dio80.build_flags} -D SR_DEBUG -D WLED_DISABLE_BROWNOUT_DET -D LEDPIN=23 -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_SENSORSTOMQTT -D USERMOD_RTC -D USERMOD_SSDR' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev_V4_dio80.build_flags} -D SR_DEBUG -D WLED_DISABLE_BROWNOUT_DET -D LEDPIN=23 -D USERMOD_WEATHER -D USERMOD_SENSORSTOMQTT -D USERMOD_RTC -D USERMOD_SSDR' >>platformio.ini
         echo 'lib_deps = ' >>platformio.ini
         echo '  ${env:esp32dev_V4_dio80.lib_deps}' >>platformio.ini
         echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
