@@ -18,24 +18,20 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install --upgrade platformio
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
     - name: Run PlatformIO
       run: |
         rm -rf /tmp/WLEDtemp/* || true
         mkdir -p /tmp/WLEDtemp
-        wget https://github.com/moonmodules/WLED/archive/refs/heads/mdev.zip -O /tmp/WLEDtemp/mm.zip
+        wget https://github.com/Aircoookie/WLED/archive/refs/heads/0_15.zip -O /tmp/WLEDtemp/mm.zip
         unzip /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
         find /tmp/WLEDtemp -maxdepth 1 -mindepth 1 -name "*" -type d >> /tmp/WLEDtemp/wledfoldername
         cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
         echo '[env:custom_build]' >>platformio.ini
-        echo 'extends = env:esp32dev_V4_dio80' >>platformio.ini
-        echo 'build_flags = ${env:esp32dev_V4_dio80.build_flags} -D SR_DEBUG -D WLED_DISABLE_BROWNOUT_DET -D LEDPIN=23 -D USERMOD_WEATHER -D USERMOD_SENSORSTOMQTT -D USERMOD_RTC -D USERMOD_SSDR' >>platformio.ini
-        echo 'lib_deps = ' >>platformio.ini
-        echo '  ${env:esp32dev_V4_dio80.lib_deps}' >>platformio.ini
-        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
-        echo '  adafruit/Adafruit BMP280 Library @ 2.1.0' >>platformio.ini
-        echo '  adafruit/Adafruit CCS811 Library @ 1.0.4' >>platformio.ini
-        echo '  adafruit/Adafruit Si7021 Library @ 1.4.0' >>platformio.ini
-        echo '  adafruit/Adafruit Unified Sensor' >>platformio.ini
+        echo 'extends = env:esp32dev_audioreactive' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev_audioreactive.build_flags} -D WLED_DISABLE_BROWNOUT_DET -D WLED_AP_SSID_UNIQUE -D WLED_ENABLE_MQTT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D WLED_DISABLE_2D -D LEDPIN=23 -D DEFAULT_LED_COUNT=144 -D DEFAULT_LED_TYPE=APA102 -D CLIENT_SSID='\''"Linksys10796"'\'' -D CLIENT_PASS='\''"wczra7imdp"'\'' -D USERMOD_BATTERY -D USERMOD_RTC -D USERMOD_SSDR -D USERMOD_SN_PHOTORESISTOR' >>platformio.ini
         
         pio run -e custom_build || pio run -e custom_build
     - name: Copy Files
