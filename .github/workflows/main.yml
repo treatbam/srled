@@ -24,17 +24,21 @@ jobs:
       run: |
         rm -rf /tmp/WLEDtemp/* || true
         mkdir -p /tmp/WLEDtemp
-        wget https://github.com/moonmodules/WLED/archive/refs/heads/mdev.zip -O /tmp/WLEDtemp/mm.zip
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/megamerge_from_ACmain.zip -O /tmp/WLEDtemp/mm.zip
         unzip /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
         find /tmp/WLEDtemp -maxdepth 1 -mindepth 1 -name "*" -type d >> /tmp/WLEDtemp/wledfoldername
         cd `cat /tmp/WLEDtemp/wledfoldername`
         npm install
         echo '[env:custom_build]' >>platformio.ini
-        echo 'extends = env:esp32_4MB_S' >>platformio.ini
-        echo 'build_flags = ${env:esp32_4MB_S.build_flags} ${common.debug_flags} -D SR_DEBUG -D WLED_DISABLE_BROWNOUT_DET -D WLED_AP_SSID_UNIQUE -D WLED_DEBUG_HOST='\''"192.168.86.100"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DISABLE_LOXONE -D WLED_DISABLE_WEBSOCKETS -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=16 -D I2S_SDPIN=32 -D I2S_WSPIN=15 -D I2S_CKPIN=14 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_BATTERY' >>platformio.ini
+        echo 'extends = env:esp32dev' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev.build_flags} ${common.debug_flags} -D SR_DEBUG -D WLED_DISABLE_BROWNOUT_DET -D WLED_AP_SSID_UNIQUE -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.5"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_WEBSOCKETS -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D IRPIN=2 -D DEFAULT_LED_COUNT=512 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D USERMOD_AUTO_SAVE -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_SENSORSTOMQTT -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR -D USERMOD_SN_PHOTORESISTOR' >>platformio.ini
         echo 'lib_deps = ' >>platformio.ini
-        echo '  ${env:esp32_4MB_S.lib_deps}' >>platformio.ini
+        echo '  ${env:esp32dev.lib_deps}' >>platformio.ini
         echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  adafruit/Adafruit BMP280 Library @ 2.1.0' >>platformio.ini
+        echo '  adafruit/Adafruit CCS811 Library @ 1.0.4' >>platformio.ini
+        echo '  adafruit/Adafruit Si7021 Library @ 1.4.0' >>platformio.ini
+        echo '  adafruit/Adafruit Unified Sensor' >>platformio.ini
         
         echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
         pio run -e custom_build || pio run -e custom_build
