@@ -31,7 +31,7 @@ jobs:
         npm install
         echo '[env:custom_build]' >>platformio.ini
         echo 'extends = env:esp32dev' >>platformio.ini
-        echo 'build_flags = ${env:esp32dev.build_flags} ${common.debug_flags} -D SR_DEBUG -D WLED_DISABLE_BROWNOUT_DET -D WLED_AP_SSID_UNIQUE -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.195"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DISABLE_LOXONE -D WLED_ENABLE_WEBSOCKETS -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D IRPIN=2 -D DEFAULT_LED_COUNT=512 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D USERMOD_AUTO_SAVE -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR -D USERMOD_SN_PHOTORESISTOR' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev.build_flags} ${common.debug_flags} -D WLED_DISABLE_BROWNOUT_DET -D WLED_AP_SSID_UNIQUE -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.195"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DISABLE_LOXONE -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC-D IRPIN=2 -D DEFAULT_LED_COUNT=512 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D USERMOD_AUTO_SAVE -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR -D USERMOD_SN_PHOTORESISTOR' >>platformio.ini
         echo 'lib_deps = ' >>platformio.ini
         echo '  ${env:esp32dev.lib_deps}' >>platformio.ini
         echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
