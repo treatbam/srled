@@ -13,20 +13,125 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.9
-
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
     - name: Install PlatformIO
       run: |
         python -m pip install --upgrade pip
         pip install --upgrade platformio
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-    - name: Run PlatformIO
+        git rm -r $GITHUB_WORKSPACE/*.bin || true
+    - name: Run PlatformIO 3DGEQ nodemcuv2
       run: |
         rm -rf /tmp/WLEDtemp/* || true
         mkdir -p /tmp/WLEDtemp
-        wget https://github.com/moonmodules/WLED/archive/refs/heads/mdev.zip -O /tmp/WLEDtemp/mm.zip
-        unzip /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
-        find /tmp/WLEDtemp -maxdepth 1 -mindepth 1 -name "*" -type d >> /tmp/WLEDtemp/wledfoldername
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/3DGEQ.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:nodemcuv2' >>platformio.ini
+        echo 'build_flags = ${env:nodemcuv2.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:nodemcuv2.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files 3DGEQ nodemcuv2
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_3DGEQ_nodemcuv2.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files 3DGEQ nodemcuv2
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_3DGEQ_nodemcuv2.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO 3DGEQ nodemcuv2_160
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/3DGEQ.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:nodemcuv2_160' >>platformio.ini
+        echo 'build_flags = ${env:nodemcuv2_160.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:nodemcuv2_160.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files 3DGEQ nodemcuv2_160
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_3DGEQ_nodemcuv2_160.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files 3DGEQ nodemcuv2_160
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_3DGEQ_nodemcuv2_160.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO 3DGEQ esp07
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/3DGEQ.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp07' >>platformio.ini
+        echo 'build_flags = ${env:esp07.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp07.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files 3DGEQ esp07
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_3DGEQ_esp07.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files 3DGEQ esp07
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_3DGEQ_esp07.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO 3DGEQ esp32dev
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/3DGEQ.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
         cd `cat /tmp/WLEDtemp/wledfoldername`
         npm install
         echo '[env:custom_build]' >>platformio.ini
@@ -39,20 +144,2084 @@ jobs:
         echo '  Wire' >>platformio.ini
         
         echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
-        pio run -e custom_build || pio run -e custom_build
-    - name: Copy Files
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files 3DGEQ esp32dev
       run: |
         cd $GITHUB_WORKSPACE
-        git rm -r $GITHUB_WORKSPACE/*.bin || true
         WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
-        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_3DGEQ_esp32dev.bin || true
         date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
-    - name: Commit Files
+    - name: Commit Files 3DGEQ esp32dev
       run: |
         cd $GITHUB_WORKSPACE
         git config user.name "GitHub Actions Bot"
         git config user.email "<>"
-        git add $GITHUB_WORKSPACE/custom_build.bin
-        git add $GITHUB_WORKSPACE/last_update_date.txt
-        git commit -m "Commit Custom Build"
-        git push origin main
+        git add $GITHUB_WORKSPACE/build_3DGEQ_esp32dev.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO 3DGEQ esp32dev_qio80
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/3DGEQ.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev_qio80' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev_qio80.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev_qio80.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files 3DGEQ esp32dev_qio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_3DGEQ_esp32dev_qio80.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files 3DGEQ esp32dev_qio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_3DGEQ_esp32dev_qio80.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO 3DGEQ esp32dev_V4_dio80
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/3DGEQ.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev_V4_dio80' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev_V4_dio80.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev_V4_dio80.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files 3DGEQ esp32dev_V4_dio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_3DGEQ_esp32dev_V4_dio80.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files 3DGEQ esp32dev_V4_dio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_3DGEQ_esp32dev_V4_dio80.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO 3DGEQ esp32_4MB_S
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/3DGEQ.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_S' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_S.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_S.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files 3DGEQ esp32_4MB_S
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_3DGEQ_esp32_4MB_S.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files 3DGEQ esp32_4MB_S
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_3DGEQ_esp32_4MB_S.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO 3DGEQ esp32_4MB_M
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/3DGEQ.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_M' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_M.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_M.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files 3DGEQ esp32_4MB_M
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_3DGEQ_esp32_4MB_M.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files 3DGEQ esp32_4MB_M
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_3DGEQ_esp32_4MB_M.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO 3DGEQ esp32_4MB_XL
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/3DGEQ.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_XL' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_XL.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_XL.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files 3DGEQ esp32_4MB_XL
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_3DGEQ_esp32_4MB_XL.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files 3DGEQ esp32_4MB_XL
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_3DGEQ_esp32_4MB_XL.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO AudioLux nodemcuv2
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/AudioLux.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:nodemcuv2' >>platformio.ini
+        echo 'build_flags = ${env:nodemcuv2.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:nodemcuv2.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files AudioLux nodemcuv2
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_AudioLux_nodemcuv2.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files AudioLux nodemcuv2
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_AudioLux_nodemcuv2.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO AudioLux nodemcuv2_160
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/AudioLux.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:nodemcuv2_160' >>platformio.ini
+        echo 'build_flags = ${env:nodemcuv2_160.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:nodemcuv2_160.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files AudioLux nodemcuv2_160
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_AudioLux_nodemcuv2_160.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files AudioLux nodemcuv2_160
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_AudioLux_nodemcuv2_160.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO AudioLux esp07
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/AudioLux.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp07' >>platformio.ini
+        echo 'build_flags = ${env:esp07.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp07.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files AudioLux esp07
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_AudioLux_esp07.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files AudioLux esp07
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_AudioLux_esp07.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO AudioLux esp32dev
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/AudioLux.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files AudioLux esp32dev
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_AudioLux_esp32dev.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files AudioLux esp32dev
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_AudioLux_esp32dev.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO AudioLux esp32dev_qio80
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/AudioLux.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev_qio80' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev_qio80.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev_qio80.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files AudioLux esp32dev_qio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_AudioLux_esp32dev_qio80.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files AudioLux esp32dev_qio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_AudioLux_esp32dev_qio80.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO AudioLux esp32dev_V4_dio80
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/AudioLux.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev_V4_dio80' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev_V4_dio80.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev_V4_dio80.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files AudioLux esp32dev_V4_dio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_AudioLux_esp32dev_V4_dio80.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files AudioLux esp32dev_V4_dio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_AudioLux_esp32dev_V4_dio80.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO AudioLux esp32_4MB_S
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/AudioLux.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_S' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_S.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_S.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files AudioLux esp32_4MB_S
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_AudioLux_esp32_4MB_S.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files AudioLux esp32_4MB_S
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_AudioLux_esp32_4MB_S.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO AudioLux esp32_4MB_M
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/AudioLux.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_M' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_M.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_M.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files AudioLux esp32_4MB_M
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_AudioLux_esp32_4MB_M.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files AudioLux esp32_4MB_M
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_AudioLux_esp32_4MB_M.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO AudioLux esp32_4MB_XL
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/AudioLux.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_XL' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_XL.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_XL.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files AudioLux esp32_4MB_XL
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_AudioLux_esp32_4MB_XL.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files AudioLux esp32_4MB_XL
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_AudioLux_esp32_4MB_XL.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO Full_audio_FastPath nodemcuv2
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/Full_audio_FastPath.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:nodemcuv2' >>platformio.ini
+        echo 'build_flags = ${env:nodemcuv2.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:nodemcuv2.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files Full_audio_FastPath nodemcuv2
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_Full_audio_FastPath_nodemcuv2.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files Full_audio_FastPath nodemcuv2
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_Full_audio_FastPath_nodemcuv2.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO Full_audio_FastPath nodemcuv2_160
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/Full_audio_FastPath.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:nodemcuv2_160' >>platformio.ini
+        echo 'build_flags = ${env:nodemcuv2_160.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:nodemcuv2_160.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files Full_audio_FastPath nodemcuv2_160
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_Full_audio_FastPath_nodemcuv2_160.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files Full_audio_FastPath nodemcuv2_160
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_Full_audio_FastPath_nodemcuv2_160.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO Full_audio_FastPath esp07
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/Full_audio_FastPath.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp07' >>platformio.ini
+        echo 'build_flags = ${env:esp07.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp07.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files Full_audio_FastPath esp07
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_Full_audio_FastPath_esp07.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files Full_audio_FastPath esp07
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_Full_audio_FastPath_esp07.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO Full_audio_FastPath esp32dev
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/Full_audio_FastPath.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files Full_audio_FastPath esp32dev
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_Full_audio_FastPath_esp32dev.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files Full_audio_FastPath esp32dev
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_Full_audio_FastPath_esp32dev.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO Full_audio_FastPath esp32dev_qio80
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/Full_audio_FastPath.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev_qio80' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev_qio80.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev_qio80.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files Full_audio_FastPath esp32dev_qio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_Full_audio_FastPath_esp32dev_qio80.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files Full_audio_FastPath esp32dev_qio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_Full_audio_FastPath_esp32dev_qio80.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO Full_audio_FastPath esp32dev_V4_dio80
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/Full_audio_FastPath.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev_V4_dio80' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev_V4_dio80.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev_V4_dio80.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files Full_audio_FastPath esp32dev_V4_dio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_Full_audio_FastPath_esp32dev_V4_dio80.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files Full_audio_FastPath esp32dev_V4_dio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_Full_audio_FastPath_esp32dev_V4_dio80.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO Full_audio_FastPath esp32_4MB_S
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/Full_audio_FastPath.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_S' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_S.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_S.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files Full_audio_FastPath esp32_4MB_S
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_Full_audio_FastPath_esp32_4MB_S.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files Full_audio_FastPath esp32_4MB_S
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_Full_audio_FastPath_esp32_4MB_S.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO Full_audio_FastPath esp32_4MB_M
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/Full_audio_FastPath.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_M' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_M.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_M.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files Full_audio_FastPath esp32_4MB_M
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_Full_audio_FastPath_esp32_4MB_M.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files Full_audio_FastPath esp32_4MB_M
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_Full_audio_FastPath_esp32_4MB_M.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO Full_audio_FastPath esp32_4MB_XL
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/Full_audio_FastPath.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_XL' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_XL.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_XL.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files Full_audio_FastPath esp32_4MB_XL
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_Full_audio_FastPath_esp32_4MB_XL.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files Full_audio_FastPath esp32_4MB_XL
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_Full_audio_FastPath_esp32_4MB_XL.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO animatrix-gamma nodemcuv2
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/animatrix-gamma.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:nodemcuv2' >>platformio.ini
+        echo 'build_flags = ${env:nodemcuv2.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:nodemcuv2.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files animatrix-gamma nodemcuv2
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_animatrix-gamma_nodemcuv2.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files animatrix-gamma nodemcuv2
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_animatrix-gamma_nodemcuv2.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO animatrix-gamma nodemcuv2_160
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/animatrix-gamma.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:nodemcuv2_160' >>platformio.ini
+        echo 'build_flags = ${env:nodemcuv2_160.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:nodemcuv2_160.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files animatrix-gamma nodemcuv2_160
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_animatrix-gamma_nodemcuv2_160.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files animatrix-gamma nodemcuv2_160
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_animatrix-gamma_nodemcuv2_160.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO animatrix-gamma esp07
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/animatrix-gamma.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp07' >>platformio.ini
+        echo 'build_flags = ${env:esp07.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp07.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files animatrix-gamma esp07
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_animatrix-gamma_esp07.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files animatrix-gamma esp07
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_animatrix-gamma_esp07.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO animatrix-gamma esp32dev
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/animatrix-gamma.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files animatrix-gamma esp32dev
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_animatrix-gamma_esp32dev.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files animatrix-gamma esp32dev
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_animatrix-gamma_esp32dev.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO animatrix-gamma esp32dev_qio80
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/animatrix-gamma.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev_qio80' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev_qio80.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev_qio80.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files animatrix-gamma esp32dev_qio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_animatrix-gamma_esp32dev_qio80.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files animatrix-gamma esp32dev_qio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_animatrix-gamma_esp32dev_qio80.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO animatrix-gamma esp32dev_V4_dio80
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/animatrix-gamma.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev_V4_dio80' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev_V4_dio80.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev_V4_dio80.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files animatrix-gamma esp32dev_V4_dio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_animatrix-gamma_esp32dev_V4_dio80.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files animatrix-gamma esp32dev_V4_dio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_animatrix-gamma_esp32dev_V4_dio80.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO animatrix-gamma esp32_4MB_S
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/animatrix-gamma.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_S' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_S.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_S.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files animatrix-gamma esp32_4MB_S
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_animatrix-gamma_esp32_4MB_S.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files animatrix-gamma esp32_4MB_S
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_animatrix-gamma_esp32_4MB_S.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO animatrix-gamma esp32_4MB_M
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/animatrix-gamma.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_M' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_M.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_M.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files animatrix-gamma esp32_4MB_M
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_animatrix-gamma_esp32_4MB_M.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files animatrix-gamma esp32_4MB_M
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_animatrix-gamma_esp32_4MB_M.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO animatrix-gamma esp32_4MB_XL
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/animatrix-gamma.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_XL' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_XL.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_XL.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files animatrix-gamma esp32_4MB_XL
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_animatrix-gamma_esp32_4MB_XL.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files animatrix-gamma esp32_4MB_XL
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_animatrix-gamma_esp32_4MB_XL.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO megamerge_from_ACmain nodemcuv2
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/megamerge_from_ACmain.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:nodemcuv2' >>platformio.ini
+        echo 'build_flags = ${env:nodemcuv2.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:nodemcuv2.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files megamerge_from_ACmain nodemcuv2
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_megamerge_from_ACmain_nodemcuv2.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files megamerge_from_ACmain nodemcuv2
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_megamerge_from_ACmain_nodemcuv2.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO megamerge_from_ACmain nodemcuv2_160
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/megamerge_from_ACmain.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:nodemcuv2_160' >>platformio.ini
+        echo 'build_flags = ${env:nodemcuv2_160.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:nodemcuv2_160.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files megamerge_from_ACmain nodemcuv2_160
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_megamerge_from_ACmain_nodemcuv2_160.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files megamerge_from_ACmain nodemcuv2_160
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_megamerge_from_ACmain_nodemcuv2_160.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO megamerge_from_ACmain esp07
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/megamerge_from_ACmain.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp07' >>platformio.ini
+        echo 'build_flags = ${env:esp07.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp07.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files megamerge_from_ACmain esp07
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_megamerge_from_ACmain_esp07.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files megamerge_from_ACmain esp07
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_megamerge_from_ACmain_esp07.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO megamerge_from_ACmain esp32dev
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/megamerge_from_ACmain.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files megamerge_from_ACmain esp32dev
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_megamerge_from_ACmain_esp32dev.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files megamerge_from_ACmain esp32dev
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_megamerge_from_ACmain_esp32dev.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO megamerge_from_ACmain esp32dev_qio80
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/megamerge_from_ACmain.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev_qio80' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev_qio80.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev_qio80.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files megamerge_from_ACmain esp32dev_qio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_megamerge_from_ACmain_esp32dev_qio80.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files megamerge_from_ACmain esp32dev_qio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_megamerge_from_ACmain_esp32dev_qio80.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO megamerge_from_ACmain esp32dev_V4_dio80
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/megamerge_from_ACmain.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev_V4_dio80' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev_V4_dio80.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev_V4_dio80.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files megamerge_from_ACmain esp32dev_V4_dio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_megamerge_from_ACmain_esp32dev_V4_dio80.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files megamerge_from_ACmain esp32dev_V4_dio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_megamerge_from_ACmain_esp32dev_V4_dio80.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO megamerge_from_ACmain esp32_4MB_S
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/megamerge_from_ACmain.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_S' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_S.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_S.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files megamerge_from_ACmain esp32_4MB_S
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_megamerge_from_ACmain_esp32_4MB_S.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files megamerge_from_ACmain esp32_4MB_S
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_megamerge_from_ACmain_esp32_4MB_S.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO megamerge_from_ACmain esp32_4MB_M
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/megamerge_from_ACmain.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_M' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_M.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_M.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files megamerge_from_ACmain esp32_4MB_M
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_megamerge_from_ACmain_esp32_4MB_M.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files megamerge_from_ACmain esp32_4MB_M
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_megamerge_from_ACmain_esp32_4MB_M.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO megamerge_from_ACmain esp32_4MB_XL
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/megamerge_from_ACmain.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_XL' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_XL.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_XL.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files megamerge_from_ACmain esp32_4MB_XL
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_megamerge_from_ACmain_esp32_4MB_XL.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files megamerge_from_ACmain esp32_4MB_XL
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_megamerge_from_ACmain_esp32_4MB_XL.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO reindexed-ledmaps nodemcuv2
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/reindexed-ledmaps.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:nodemcuv2' >>platformio.ini
+        echo 'build_flags = ${env:nodemcuv2.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:nodemcuv2.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files reindexed-ledmaps nodemcuv2
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_reindexed-ledmaps_nodemcuv2.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files reindexed-ledmaps nodemcuv2
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_reindexed-ledmaps_nodemcuv2.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO reindexed-ledmaps nodemcuv2_160
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/reindexed-ledmaps.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:nodemcuv2_160' >>platformio.ini
+        echo 'build_flags = ${env:nodemcuv2_160.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:nodemcuv2_160.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files reindexed-ledmaps nodemcuv2_160
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_reindexed-ledmaps_nodemcuv2_160.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files reindexed-ledmaps nodemcuv2_160
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_reindexed-ledmaps_nodemcuv2_160.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO reindexed-ledmaps esp07
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/reindexed-ledmaps.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp07' >>platformio.ini
+        echo 'build_flags = ${env:esp07.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp07.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files reindexed-ledmaps esp07
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_reindexed-ledmaps_esp07.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files reindexed-ledmaps esp07
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_reindexed-ledmaps_esp07.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO reindexed-ledmaps esp32dev
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/reindexed-ledmaps.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files reindexed-ledmaps esp32dev
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_reindexed-ledmaps_esp32dev.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files reindexed-ledmaps esp32dev
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_reindexed-ledmaps_esp32dev.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO reindexed-ledmaps esp32dev_qio80
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/reindexed-ledmaps.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev_qio80' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev_qio80.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev_qio80.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files reindexed-ledmaps esp32dev_qio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_reindexed-ledmaps_esp32dev_qio80.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files reindexed-ledmaps esp32dev_qio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_reindexed-ledmaps_esp32dev_qio80.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO reindexed-ledmaps esp32dev_V4_dio80
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/reindexed-ledmaps.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev_V4_dio80' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev_V4_dio80.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev_V4_dio80.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files reindexed-ledmaps esp32dev_V4_dio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_reindexed-ledmaps_esp32dev_V4_dio80.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files reindexed-ledmaps esp32dev_V4_dio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_reindexed-ledmaps_esp32dev_V4_dio80.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO reindexed-ledmaps esp32_4MB_S
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/reindexed-ledmaps.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_S' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_S.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_S.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files reindexed-ledmaps esp32_4MB_S
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_reindexed-ledmaps_esp32_4MB_S.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files reindexed-ledmaps esp32_4MB_S
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_reindexed-ledmaps_esp32_4MB_S.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO reindexed-ledmaps esp32_4MB_M
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/reindexed-ledmaps.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_M' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_M.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_M.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files reindexed-ledmaps esp32_4MB_M
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_reindexed-ledmaps_esp32_4MB_M.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files reindexed-ledmaps esp32_4MB_M
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_reindexed-ledmaps_esp32_4MB_M.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO reindexed-ledmaps esp32_4MB_XL
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/reindexed-ledmaps.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_XL' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_XL.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_XL.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files reindexed-ledmaps esp32_4MB_XL
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_reindexed-ledmaps_esp32_4MB_XL.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files reindexed-ledmaps esp32_4MB_XL
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_reindexed-ledmaps_esp32_4MB_XL.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO upstream_patch2_clusterfck nodemcuv2
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/upstream_patch2_clusterfck.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:nodemcuv2' >>platformio.ini
+        echo 'build_flags = ${env:nodemcuv2.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:nodemcuv2.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files upstream_patch2_clusterfck nodemcuv2
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_nodemcuv2.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files upstream_patch2_clusterfck nodemcuv2
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_nodemcuv2.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO upstream_patch2_clusterfck nodemcuv2_160
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/upstream_patch2_clusterfck.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:nodemcuv2_160' >>platformio.ini
+        echo 'build_flags = ${env:nodemcuv2_160.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:nodemcuv2_160.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files upstream_patch2_clusterfck nodemcuv2_160
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_nodemcuv2_160.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files upstream_patch2_clusterfck nodemcuv2_160
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_nodemcuv2_160.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO upstream_patch2_clusterfck esp07
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/upstream_patch2_clusterfck.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp07' >>platformio.ini
+        echo 'build_flags = ${env:esp07.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp07.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files upstream_patch2_clusterfck esp07
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_esp07.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files upstream_patch2_clusterfck esp07
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_esp07.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO upstream_patch2_clusterfck esp32dev
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/upstream_patch2_clusterfck.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files upstream_patch2_clusterfck esp32dev
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_esp32dev.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files upstream_patch2_clusterfck esp32dev
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_esp32dev.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO upstream_patch2_clusterfck esp32dev_qio80
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/upstream_patch2_clusterfck.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev_qio80' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev_qio80.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev_qio80.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files upstream_patch2_clusterfck esp32dev_qio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_esp32dev_qio80.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files upstream_patch2_clusterfck esp32dev_qio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_esp32dev_qio80.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO upstream_patch2_clusterfck esp32dev_V4_dio80
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/upstream_patch2_clusterfck.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32dev_V4_dio80' >>platformio.ini
+        echo 'build_flags = ${env:esp32dev_V4_dio80.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32dev_V4_dio80.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files upstream_patch2_clusterfck esp32dev_V4_dio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_esp32dev_V4_dio80.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files upstream_patch2_clusterfck esp32dev_V4_dio80
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_esp32dev_V4_dio80.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO upstream_patch2_clusterfck esp32_4MB_S
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/upstream_patch2_clusterfck.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_S' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_S.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_S.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files upstream_patch2_clusterfck esp32_4MB_S
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_esp32_4MB_S.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files upstream_patch2_clusterfck esp32_4MB_S
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_esp32_4MB_S.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO upstream_patch2_clusterfck esp32_4MB_M
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/upstream_patch2_clusterfck.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_M' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_M.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_M.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files upstream_patch2_clusterfck esp32_4MB_M
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_esp32_4MB_M.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files upstream_patch2_clusterfck esp32_4MB_M
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_esp32_4MB_M.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
+    - name: Run PlatformIO upstream_patch2_clusterfck esp32_4MB_XL
+      run: |
+        rm -rf /tmp/WLEDtemp/* || true
+        mkdir -p /tmp/WLEDtemp
+        wget https://github.com/moonmodules/WLED/archive/refs/heads/upstream_patch2_clusterfck.zip -O /tmp/WLEDtemp/mm.zip
+        unzip -o /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
+        find /tmp/WLEDtemp -maxdepth 1 -name "WLED-*" -type d >> /tmp/WLEDtemp/wledfoldername
+        cd `cat /tmp/WLEDtemp/wledfoldername`
+        npm install
+        echo '[env:custom_build]' >>platformio.ini
+        echo 'extends = env:esp32_4MB_XL' >>platformio.ini
+        echo 'build_flags = ${env:esp32_4MB_XL.build_flags} ${common.debug_flags} -D SR_DEBUG -D MIC_LOGGER -D WLED_DISABLE_ESPNOW -D WLED_DISABLE_BROWNOUT_DET -D WLED_DEBUG -D WLED_DEBUG_HOST='\''"192.168.86.178"'\'' -D WLED_DEBUG_PORT=7868 -D WLED_DEBUG_NTP -D WLED_DEBUG_IMPROV -D WLED_ENABLE_MQTT -D WLED_DISABLE_LOXONE -D WLED_ENABLE_ADALIGHT -D WLED_ENABLE_PIXART -D WLED_DISABLE_ALEXA -D WLED_DISABLE_HUESYNC -D LEDPIN=23 -D I2S_SDPIN=0 -D I2S_WSPIN=0 -D I2S_CKPIN=0 -D WLED_MAX_USERMODS=6 -D WLED_MAX_BUSSES=6 -D DEFAULT_LED_COUNT=142 -D DEFAULT_LED_TYPE=TYPE_APA102 -D DEFAULT_LED_COLOR_ORDER=COL_ORDER_BGR -D MAX_LEDS=8192 -D CLIENT_SSID='\''"monsterhoneybun"'\'' -D CLIENT_PASS='\''"zuhbah5pirqociFhiv"'\'' -D WLED_AP_SSID='\''"WLED-FUKED"'\'' -D WLED_AP_PASS='\''"fuckme69"'\'' -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_ROTARY_ENCODER_UI -D USE_ALT_DISPlAY -D USERMOD_PWM_OUTPUTS -D USERMOD_SSDR' >>platformio.ini
+        echo 'lib_deps = ' >>platformio.ini
+        echo '  ${env:esp32_4MB_XL.lib_deps}' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
+        echo '  Wire' >>platformio.ini
+        
+        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
+        pio run -e custom_build || pio run -e custom_build || true
+    - name: Copy Files upstream_patch2_clusterfck esp32_4MB_XL
+      run: |
+        cd $GITHUB_WORKSPACE
+        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
+        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_esp32_4MB_XL.bin || true
+        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
+    - name: Commit Files upstream_patch2_clusterfck esp32_4MB_XL
+      run: |
+        cd $GITHUB_WORKSPACE
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add $GITHUB_WORKSPACE/build_upstream_patch2_clusterfck_esp32_4MB_XL.bin || true
+        git add $GITHUB_WORKSPACE/last_update_date.txt || true
+        git commit -m "Commit Custom Build" || true
+        git push origin main || true
